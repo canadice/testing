@@ -1,0 +1,177 @@
+/* pff style from reactablefmtr R package */
+
+/* Colors */
+:root {
+    --color: #000;
+    --backgroundColor: #ffffff;
+    --borderWidth: 0px;
+    --stripedColor: #f9f9fb;
+    --highlightColor: #f1f3f4;
+    --cellPadding: 4;
+    --fontSize: 16;
+}
+
+/* Table Style */
+.reactable {
+    font-size: var(--fontSize);
+}
+
+/* Apply flex layout to the main container */
+.reactable-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin: 10px;
+    width: 95%;
+    /* max-width: 700px; */
+}
+
+.reactable-settings {
+    display: flex;
+    justify-content: space-between;
+}
+
+.reactable-settings-container {
+    /* display: flex; */
+    /* justify-content: space-between; */
+    width: 100%;
+    /* Limit the width of the settings and pagination divs */
+}
+
+.reactable-table-container {
+    overflow-x: auto;
+    width: 100%;
+    /* Limit the width of the table-container */
+}
+
+/* Header Style */
+.reactable-header {
+    border-width: 1px;
+    padding: 7px;
+    border-top: 1px solid #595d63;
+    background-color: #595d63;
+    color: #ffffff;
+    text-transform: uppercase;
+    border-color: #595d63;
+    transition-duration: 0.1s;
+}
+
+.reactable-header:hover[aria-sort] {
+    background-color: #4d5056;
+    color: #ffffff;
+}
+
+.reactable-header[aria-sort='ascending'] {
+    background-color: #393c40;
+    color: #ffffff;
+    box-shadow: inset 0 3px 0 0 #ffffff;
+}
+
+.reactable-header[aria-sort='descending'] {
+    background-color: #393c40;
+    color: #ffffff;
+    box-shadow: inset 0 -3px 0 0 #ffffff;
+}
+
+/* Row Style */
+.reactable-row:nth-of-type(odd) {
+    background-color: #f9f9fb;
+}
+
+/* Highlight Style */
+.reactable-highlight {
+    background-color: #f1f3f4;
+}
+
+/* Cell Style */
+.reactable-cell {
+    padding: 4px;
+}
+
+/* Group Header Style */
+.reactable-group-header:not(:empty) {
+    background-color: #e4e8ed;
+    text-transform: uppercase;
+    font-weight: bold;
+    color: #000;
+    font-size: 12px;
+    box-shadow: inset 3px 0 0 0 #ffffff;
+}
+
+/* Selected Row Style */
+.reactable-row.reactable-row-selected {
+    background-color: #e4e8ed;
+}
+
+/* Input Style */
+.reactable-input {
+    background-color: #ffffff;
+    color: #878e94;
+}
+
+/* Search Input Style */
+.reactable-search-input {
+    font-size: 14px;
+    text-transform: uppercase;
+    background-color: #ffffff;
+    color: #878e94;
+}
+
+.reactable-search-input:focus {
+    color: #878e94;
+}
+
+/* Select Style */
+.reactable-select {
+    background-color: #073c57;
+    color: #ffffff;
+    border-color: #ffffff;
+    outline-color: #ffffff;
+}
+
+/* Pagination Style */
+.reactable-pagination {
+    text-transform: uppercase;
+    font-size: 15px;
+}
+
+.reactable-pagination-nav {
+    justify-content: space-between;
+}
+
+/* Page Button Style */
+.reactable-page-button {
+    text-transform: uppercase;
+    font-size: 15px;
+    /* background-color: #ffffff; */
+    color: #164861;
+    padding: 0 5px;
+}
+
+.reactable-page-button:hover {
+    background-color: #052c3f;
+    color: #ffffff;
+}
+
+/* Page Button Hover Style */
+.reactable-page-button:hover {
+    background-color: #052c3f;
+    color: #ffffff;
+}
+
+/* Page Button Active Style */
+.reactable-page-button.reactable-page-button-active {
+    background-color: #073c57;
+    color: #ffffff;
+}
+
+/* Page Button Current Style */
+.reactable-page-button.reactable-page-button-current {
+    background-color: #073c57;
+    color: #ffffff;
+}
+
+.reactable a {
+    text-decoration: underline;
+}

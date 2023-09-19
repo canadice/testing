@@ -1,13 +1,20 @@
 import { Link } from '@chakra-ui/react';
-import { LeagueLogo } from './LeagueLogo';
-
+import {
+    Button,
+    Menu,
+    MenuButton,
+    MenuList,
+    MenuItem,
+    Avatar,
+} from '@chakra-ui/react';
+import { ReactSVG } from 'react-svg';
 
 export const Header = () => {
 
     return (
         <div>
             <div
-                className="z-50 h-16 w-full bg-grey900"
+                className="h-16 w-full bg-grey900"
                 role="navigation"
                 aria-label="Main"
             >
@@ -16,11 +23,14 @@ export const Header = () => {
                         href="/"
                         className="order-2 m-0 h-full w-max transition-all sm:mx-2 sm:inline-block sm:h-full"
                     >
-                        {/* <LeagueLogo
-                            league="shl"
-                            className="relative top-[5%] h-[90%] sm:top-[2.5%]"
-                        /> */}
+                        <ReactSVG className='w-20' src={'../SSL.svg'} />
                     </Link>
+                    <Link
+                        href="/draftClass"
+                    >
+                        Draft Class
+                    </Link>
+
                 </div>
             </div>
         </div>

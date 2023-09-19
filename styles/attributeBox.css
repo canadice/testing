@@ -1,0 +1,63 @@
+/* Apply flex layout to the main container */
+.attribute-container {
+    display: grid;
+    margin: 10px;
+    width: 95%;
+    /* max-width: 700px; */
+}
+
+.attribute-class-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    border-radius: 2px;
+    /* border: 1px solid #000; */
+}
+
+.attribute-box {
+    /* display: grid; */
+    padding: 5px;
+}
+
+.attribute-input {
+    width: 100%;
+}
+
+.attribute-cost {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    color: var(--sslBlue);
+}
+
+/* Basic style for the input */
+.attribute-box input {
+    padding: 5px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    transition: border-color 0.3s ease-in-out;
+}
+
+/* Hover style for the input */
+.attribute-box input:hover {
+    border-color: #666;
+}
+
+/* Focus style for the input */
+.attribute-box input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 4px rgba(0, 123, 255, 0.5);
+}
+
+.attribute-info {
+    font-size: 0.7em;
+}
+
+.left {
+    float: left;
+}
+
+.right {
+    float: right;
+}

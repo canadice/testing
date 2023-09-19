@@ -16,8 +16,6 @@ import { useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 import * as Yup from 'yup';
 
-import { Footer } from '../components/Footer';
-import { Header } from '../components/Header';
 import { useSession } from '../contexts/AuthContext';
 
 const validationSchema = Yup.object({}).shape({
@@ -61,7 +59,7 @@ export default () => {
             setSubmitting(true);
             handleLogin(username, password)
                 .then(() => {
-                    router.push('/');
+                    router.push('/player');
                     setSubmitting(false);
                 })
                 .catch((error) => {
@@ -80,7 +78,6 @@ export default () => {
 
     return (
         <>
-            <Header />
             <div className="mx-auto my-20 w-1/2 space-y-4 lg:w-1/4">
                 <form onSubmit={handleSubmit}>
                     <FormControl isInvalid={!!errors.username && touched.username}>
@@ -93,7 +90,7 @@ export default () => {
                             name="username"
                             value={values.username}
                             className="font-mont"
-                            placeholder="Your SHL Username"
+                            placeholder="Your SSL Username"
                         />
                         {errors.username && touched.username && (
                             <FormErrorMessage>{errors.username}</FormErrorMessage>
@@ -110,7 +107,7 @@ export default () => {
                                 name="password"
                                 value={values.password}
                                 className="font-mont"
-                                placeholder="Your SHL Password"
+                                placeholder="Your SSL Password"
                             />
                             <InputRightElement>
                                 <Tooltip
@@ -148,7 +145,7 @@ export default () => {
                 <div className="text-sm">
                     <Link
                         isExternal
-                        href="https://simulationhockey.com/member.php?action=lostpw"
+                        href="https://forum.simulationsoccer.com/member.php?action=lostpw"
                         className="font-mont !text-blue600"
                     >
                         Forgot your password?
@@ -158,7 +155,7 @@ export default () => {
                     Don&apos;t have an account?{' '}
                     <Link
                         isExternal
-                        href="https://simulationhockey.com/member.php?action=register"
+                        href="https://forum.simulationsoccer.com/member.php?action=register"
                         className=" !text-blue600"
                     >
                         Sign up
@@ -166,7 +163,6 @@ export default () => {
                 </div>
                 {loginError && <div className="text-red200">{loginError}</div>}
             </div>
-            <Footer />
         </>
     );
 };

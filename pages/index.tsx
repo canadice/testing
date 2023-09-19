@@ -1,7 +1,6 @@
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
-import { PageWrapper } from '../components/common/PageWrapper';
 import { useSession } from '../contexts/AuthContext';
 
 export default () => {
@@ -21,14 +20,12 @@ export default () => {
       // } else {
       //   router.replace('/player');
       // }
-      router.replace('/api/hello')
+      router.replace('/player')
     }
   }, [loggedIn, router]);
 
   return (
-    <PageWrapper loading={loggedIn ? true : false}>
-      <div />
-    </PageWrapper>
+    <div />
   );
 }
 

@@ -92,6 +92,8 @@ export const SessionProvider = ({
 
         isRefreshingRef.current = true;
 
+        console.log(window.localStorage.getItem('refreshToken'));
+
         const response = await fetch('/api/v1/auth/token', {
             method: 'POST',
             headers: {
