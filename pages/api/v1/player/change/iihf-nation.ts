@@ -9,7 +9,7 @@ import { InternalPlayerInfo } from 'typings/portal-db';
 interface ExtendedRequest extends NextApiRequest {
   body: {
     pid: string;
-    nation: string;
+    nation?: string;
   };
 }
 
@@ -35,21 +35,28 @@ export default async function handler(
     return;
   }
 
-  if (!player.length || !COUNTRIES.includes(req.body.nation as Country)) {
+  if (
+    !player.length ||
+    (req.body.nation !== undefined &&
+      !COUNTRIES.includes(req.body.nation as Country))
+  ) {
     res.status(400).end('Invalid request');
     return;
   }
 
+  const iihfNationQuery =
+    req.body.nation === undefined
+      ? SQL`UPDATE playerInfo SET iihfNation=NULL WHERE playerUpdateID=${req.body.pid};`
+      : SQL`UPDATE playerInfo SET iihfNation=${req.body.nation} WHERE playerUpdateID=${req.body.pid};`;
+
   const results = await transaction()
-    .query(
-      SQL`UPDATE playerInfo SET iihfNation=${req.body.nation} WHERE playerUpdateID=${req.body.pid};`,
-    )
+    .query(iihfNationQuery)
     .query(() => [
       'INSERT INTO updateEvents (playerUpdateID, attributeChanged, newValue, oldValue, performedByID, status) VALUES (?, ?, ?, ?, ?, ?)',
       [
         req.body.pid,
         'iihfNation',
-        req.body.nation,
+        req.body.nation ?? 'NULL',
         player[0].iihfNation ?? 'NULL',
         req.cookies.userid,
         'approved',

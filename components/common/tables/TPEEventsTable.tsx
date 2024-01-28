@@ -58,6 +58,8 @@ export const TPEEventsTable = ({
               <Link
                 className="!hover:no-underline text-blue600"
                 href={`https://simulationhockey.com/showthread.php?tid=${props.row.original.taskThreadID}`}
+                target="_blank"
+                rel="noopener"
               >
                 {props.row.original.taskDescription}
               </Link>

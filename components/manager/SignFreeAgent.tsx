@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PlayerTable } from 'components/common/tables/PlayerTable';
 import { useSession } from 'contexts/AuthContext';
 import { ToastContext } from 'contexts/ToastContext';
+import { useSeason } from 'hooks/useSeason';
 import { useContext, useMemo, useState } from 'react';
 import { Team, Player } from 'typings';
 import { mutate, query } from 'utils/query';
@@ -21,18 +22,24 @@ export const SignFreeAgent = ({
 }) => {
   const { session } = useSession();
   const { addToast } = useContext(ToastContext);
+  const { season, loading: seasonLoading } = useSeason();
   const queryClient = useQueryClient();
 
   const [actionedPlayer, setActionedPlayer] = useState<Player | undefined>();
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const { data, isLoading } = useQuery<Player[]>({
-    queryKey: ['playerFreeAgents', league],
+    queryKey: ['playerFreeAgents', league, season],
     queryFn: () =>
       query(
-        `api/v1/player?teamID=ufa${league === 1 ? '&maxAppliedTPE=425' : ''}`,
+        `api/v1/player?teamID=ufa${
+          league === 1
+            ? `&minSeason=${season - 2}&maxAppliedTPE=425`
+            : `&maxSeason=${season}`
+        }`,
         undefined,
       ),
+    enabled: !seasonLoading,
   });
 
   const submitTransaction = useMutation<

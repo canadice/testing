@@ -37,11 +37,10 @@ const getChangeCost = (
     case 'Position':
       return isSophomoreGoalie ? 0 : CHANGE_COSTS.position;
     case 'Render':
-      return CHANGE_COSTS.render;
     case 'JerseyNumber':
-      return CHANGE_COSTS.jerseyNumber;
-    default:
       return false;
+    default:
+      return Infinity;
   }
 };
 
@@ -153,8 +152,8 @@ export default async function handler(
   const changeQuery = getChangeQuery(req);
 
   if (
-    (!changeCost && changeCost !== 0) ||
-    currentPlayer[0].bankBalance < changeCost ||
+    (typeof changeCost === 'number' &&
+      currentPlayer[0].bankBalance < changeCost) ||
     hasPendingRequestForType ||
     invalidPositionChange ||
     !isNewValueValid(req)
@@ -165,7 +164,7 @@ export default async function handler(
 
   const results = await transaction()
     .query(() => {
-      if (changeCost !== 0) {
+      if (changeCost > 0) {
         return [
           'INSERT INTO bankTransactions (uid, amount, submitByID, description, status, type) VALUES (?, ?, ?, ?, ?, ?)',
           [
@@ -187,7 +186,7 @@ export default async function handler(
     .query((r: InternalBankTransactions[]) => {
       if (
         r.length &&
-        (changeCost !== 0 ||
+        (changeCost > 0 ||
           (isGoalie && isSophomoreSeason && req.body.type === 'Position')) &&
         req.body.type !== 'JerseyNumber' &&
         req.body.type !== 'Render'

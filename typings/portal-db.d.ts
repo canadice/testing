@@ -32,7 +32,7 @@ export type InternalGoalieAttributes = {
   professionalism: number;
 };
 
-export type InternalLeague = 'shl' | 'smjhl' | 'iihf';
+export type InternalLeague = 'shl' | 'smjhl' | 'iihf' | 'wjc';
 
 export type InternalPlayerInfo = {
   userID: number;
@@ -64,6 +64,7 @@ export type InternalPlayerInfo = {
   usedRedistribution: number;
   coachingPurchased: number;
   teamTrainingCamp: number;
+  suspended: boolean;
 };
 
 export type InternalSeasons = {
@@ -219,4 +220,47 @@ export type InternalLastWeekUpdates = {
   newValue: string;
   eventDate: string;
   status: string;
+};
+
+export type InternalIndexPlayerID = {
+  playerUpdateID: number;
+  leagueID: number;
+  indexID: number;
+  startSeason: number;
+};
+
+export type InternalDraftInfo = {
+  playerUpdateID: number | null;
+  uid: number | null;
+  leagueID: number;
+  seasonID: number;
+  teamID: number;
+  round: number;
+  draftNumber: number;
+  name: string;
+};
+
+export type InternalPlayerAchievement = {
+  playerUpdateID: number | null;
+  uid: number | null;
+  FHMID: number;
+  leagueID: number;
+  seasonID: number;
+  achievement: number;
+  type: number;
+  teamID: number;
+  awarded: boolean;
+};
+
+export type InternalLookupAchievement = {
+  id: number;
+  name: string;
+  description: string;
+};
+
+export type InternalTeamAchievement = {
+  teamID: number;
+  leagueID: number;
+  seasonID: number;
+  achievement: number;
 };

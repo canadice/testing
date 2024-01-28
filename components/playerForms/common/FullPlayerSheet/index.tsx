@@ -1,8 +1,20 @@
 import { Search2Icon } from '@chakra-ui/icons';
-import { Badge, Link, Tooltip } from '@chakra-ui/react';
+import {
+  Accordion,
+  AccordionButton,
+  AccordionIcon,
+  AccordionItem,
+  AccordionPanel,
+  Badge,
+  Link,
+  Tooltip,
+} from '@chakra-ui/react';
+import { TeamLogo } from 'components/common/TeamLogo';
 import { ChangeIcon } from 'components/playerForms/changeForms/ChangeIcon';
-import { TeamLogo } from 'components/TeamLogo';
+import { flattenPlayer } from 'components/playerForms/shared';
+import { useDraftInfo } from 'hooks/useDraftInfo';
 import { useGetCappedTPE } from 'hooks/useGetCappedTPE';
+import { usePlayerAchievements } from 'hooks/usePlayerAchievements';
 import { useSeason } from 'hooks/useSeason';
 import { useTeamInfo } from 'hooks/useTeamInfo';
 import { Base64 } from 'js-base64';
@@ -11,8 +23,11 @@ import { Player } from 'typings';
 import { formatCurrency } from 'utils/formatCurrency';
 import { formatDateTime } from 'utils/formatDateTime';
 
+import { AchievementTable } from './AchievementTable';
+import { DraftInfoTable } from './DraftInfoTable';
 import { GoalieAttributeTable } from './GoalieAttributeTable';
 import { HeaderProperty } from './HeaderProperty';
+import { IndexRecordTable } from './IndexRecordTable';
 import { Property } from './Property';
 import { Section } from './Section';
 import { SkaterAttributeTable } from './SkaterAttributeTable';
@@ -38,6 +53,14 @@ export const FullPlayerSheet = ({
 
   const { season } = useSeason();
   const { totalTPE, isCappedTPE } = useGetCappedTPE(player, season);
+  const { draftInfo } = useDraftInfo({
+    playerUpdateID: player.pid,
+    enabled: player.pid !== undefined,
+  });
+  const { playerAchievements } = usePlayerAchievements({
+    playerUpdateID: player.pid,
+    enabled: player.pid !== undefined,
+  });
 
   const bottomBorderStyle: {
     primary: HTMLAttributes<HTMLDivElement>['style'];
@@ -141,6 +164,7 @@ export const FullPlayerSheet = ({
                   aria-label={`${player.username}. Link navigates to users forum profile.`}
                   className="!hover:no-underline flex items-center font-mont hover:text-blue600 focus:text-blue600"
                   href={`https://simulationhockey.com/member.php?action=profile&uid=${player.uid}`}
+                  isExternal
                 >
                   {player.username}
                   <Search2Icon className="ml-2 justify-self-center align-middle" />
@@ -153,30 +177,33 @@ export const FullPlayerSheet = ({
 
       <Section label="League" borderStyle={bottomBorderStyle.secondary}>
         <Property label="Current League" value={player.currentLeague} />
-        <Property label="Current Team" value={currentTeam?.name} />
-        {player.currentLeague !== 'SHL' && shlRightsTeam && (
-          <Property label="SHL Rights Team" value={shlRightsTeam.name} />
-        )}
+        <Property label="Current Team">
+          {currentTeam?.name && player.currentLeague && (
+            <Link
+              className="!hover:no-underline flex items-center font-mont hover:text-blue600 focus:text-blue600"
+              href={`/teams/${player.currentLeague.toLowerCase()}/${
+                currentTeam.id
+              }`}
+            >
+              {currentTeam?.name}
+              <Search2Icon className="ml-2 justify-self-center align-middle" />
+            </Link>
+          )}
+        </Property>
+        {player.currentLeague &&
+          player.currentLeague !== 'SHL' &&
+          shlRightsTeam && (
+            <Property label="SHL Rights Team">
+              <Link
+                className="!hover:no-underline flex items-center font-mont hover:text-blue600 focus:text-blue600"
+                href={`/teams/shl/${shlRightsTeam.id}`}
+              >
+                {shlRightsTeam?.name}
+                <Search2Icon className="ml-2 justify-self-center align-middle" />
+              </Link>
+            </Property>
+          )}
         <Property label="IIHF Nation" value={player.iihfNation} />
-      </Section>
-
-      <Section label="Historical" borderStyle={bottomBorderStyle.secondary}>
-        <Property
-          label="Creation Date"
-          value={formatDateTime(player.creationDate, true)}
-          className="font-mont"
-        />
-        <Property label="Draft Season" value={player.draftSeason} />
-        {player.recruiter && (
-          <Property label="Recruiter" value={player.recruiter} />
-        )}
-        {player.retirementDate && (
-          <Property
-            label="Retirement Date"
-            value={formatDateTime(player.retirementDate, true)}
-            className="font-mont"
-          />
-        )}
       </Section>
 
       <Section label="TPE" cols={3} borderStyle={bottomBorderStyle.secondary}>
@@ -199,7 +226,7 @@ export const FullPlayerSheet = ({
               href={`/player/build?token=${Base64.encode(
                 JSON.stringify(
                   player
-                    ? {
+                    ? flattenPlayer({
                         position: player.position,
                         totalTPE: player.totalTPE,
                         currentLeague: 'SHL',
@@ -207,7 +234,7 @@ export const FullPlayerSheet = ({
                         bankedTPE: player.bankedTPE,
                         appliedTPE: player.appliedTPE,
                         attributes: player.attributes,
-                      }
+                      } as Player)
                     : {},
                 ),
               )}`}
@@ -261,6 +288,46 @@ export const FullPlayerSheet = ({
           )}
         </div>
       </div>
+
+      <Accordion allowToggle>
+        <AccordionItem>
+          <AccordionButton
+            className="bg-grey900 p-2 text-grey100"
+            style={bottomBorderStyle.secondary}
+            _hover={{}}
+            padding="8px"
+          >
+            <span className="flex-1 text-left font-bold">Historical</span>
+            <AccordionIcon />
+          </AccordionButton>
+          <AccordionPanel padding={0}>
+            <div className="grid grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] gap-6 p-2">
+              <div className="grid w-full grid-cols-1 gap-6 text-sm md:grid-cols-2">
+                <Property
+                  label="Creation Date"
+                  value={formatDateTime(player.creationDate, true)}
+                  className="font-mont"
+                />
+                <Property label="Draft Season" value={player.draftSeason} />
+                {player.recruiter && (
+                  <Property label="Recruiter" value={player.recruiter} />
+                )}
+                {player.retirementDate && (
+                  <Property
+                    label="Retirement Date"
+                    value={formatDateTime(player.retirementDate, true)}
+                    className="font-mont"
+                  />
+                )}
+              </div>
+            </div>
+            <IndexRecordTable indexRecords={player.indexRecords} />
+            <DraftInfoTable draftInfo={draftInfo} />
+            <AchievementTable achievements={playerAchievements} />
+          </AccordionPanel>
+        </AccordionItem>
+      </Accordion>
+
       <UpdateEventsAccordion
         pid={player.pid}
         borderStyle={bottomBorderStyle.secondary}

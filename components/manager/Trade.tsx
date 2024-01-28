@@ -82,7 +82,7 @@ export const Trade = ({
   );
 
   const handleSubmit = async () => {
-    if (!tradeTeamID) {
+    if (!tradeTeamID && tradeTeamID !== 0) {
       addToast({
         title: `No Team Selected`,
         description: `Select a team to trade this player to.`,

@@ -11,6 +11,7 @@ import {
   GoalieAttributes,
   SkaterAttributes,
   TPETimeline,
+  IndexPlayerID,
 } from 'typings';
 import * as Yup from 'yup';
 
@@ -18,6 +19,7 @@ import { AttributeFormTypes } from './attributeForms/attributeFormFlags';
 import {
   Country,
   Handedness,
+  LEAGUE_LINK_MAP,
   LimitedAttribute,
   PLAYER_INFO_OPTIONS,
   Position,
@@ -679,3 +681,181 @@ export const mapTimelineForChart = (
 
   return { data: sortedData, names: uniqueNames };
 };
+
+const GOALIE_BUILD_ATTRIBUTES = [
+  'blocker',
+  'glove',
+  'passing',
+  'pokeCheck',
+  'positioning',
+  'rebound',
+  'recovery',
+  'puckhandling',
+  'lowShots',
+  'reflexes',
+  'skating',
+  'aggression',
+  'mentalToughness',
+  'determination',
+  'teamPlayer',
+  'leadership',
+  'goaltenderStamina',
+  'professionalism',
+] as const;
+
+const SKATER_BUILD_ATTRIBUTES = [
+  'screening',
+  'gettingOpen',
+  'passing',
+  'puckhandling',
+  'shootingAccuracy',
+  'shootingRange',
+  'offensiveRead',
+  'checking',
+  'hitting',
+  'positioning',
+  'stickchecking',
+  'shotBlocking',
+  'faceoffs',
+  'defensiveRead',
+  'acceleration',
+  'agility',
+  'balance',
+  'speed',
+  'stamina',
+  'strength',
+  'fighting',
+  'aggression',
+  'bravery',
+  'determination',
+  'teamPlayer',
+  'leadership',
+  'temperament',
+  'professionalism',
+] as const;
+
+export const flattenPlayer = (player: Player): (string | number)[] => {
+  let attributes: any = {};
+
+  if (player.position === 'Goalie') {
+    const goalieAttributes = player.attributes as GoalieAttributes;
+
+    GOALIE_BUILD_ATTRIBUTES.forEach(
+      (attribute) =>
+        (attributes[attribute] =
+          goalieAttributes[attribute as keyof GoalieAttributes]),
+    );
+  } else {
+    const skaterAttributes = player.attributes as SkaterAttributes;
+
+    SKATER_BUILD_ATTRIBUTES.forEach(
+      (attribute) =>
+        (attributes[attribute] =
+          skaterAttributes[attribute as keyof SkaterAttributes]),
+    );
+  }
+
+  return _.values({
+    creationDate: player.creationDate,
+    totalTPE: player.totalTPE,
+    position: player.position,
+    ...attributes,
+  });
+};
+
+export const rebuildPlayer = (values: (string | number)[]): Player => {
+  const creationDate = values[0] as string;
+  const totalTPE = values[1] as number;
+  const position = values[2] as Player['position'];
+  const attributes =
+    position === 'Goalie'
+      ? (_.zipObject(
+          GOALIE_BUILD_ATTRIBUTES,
+          values.slice(3),
+        ) as GoalieAttributes)
+      : (_.zipObject(
+          SKATER_BUILD_ATTRIBUTES,
+          values.slice(3),
+        ) as SkaterAttributes);
+
+  return {
+    ...defaultBuildPlayer,
+    creationDate,
+    totalTPE,
+    position,
+    attributes,
+  };
+};
+
+export const defaultBuildPlayer: Player = {
+  recruiter: '',
+  render: '',
+  iihfNation: '',
+  position: 'Center',
+  uid: 0,
+  username: '',
+  pid: 0,
+  creationDate: '',
+  retirementDate: null,
+  status: 'active',
+  birthplace: null,
+  totalTPE: 155,
+  currentLeague: 'SHL',
+  currentTeamID: null,
+  shlRightsTeamID: null,
+  draftSeason: 1,
+  bankedTPE: 155,
+  appliedTPE: 0,
+  positionChanged: false,
+  usedRedistribution: 0,
+  coachingPurchased: 0,
+  trainingPurchased: false,
+  activityCheckComplete: false,
+  trainingCampComplete: false,
+  taskStatus: 'Draftee Free Agent',
+  isSuspended: false,
+  bankBalance: 0,
+  attributes: {
+    screening: 5,
+    gettingOpen: 5,
+    passing: 5,
+    puckhandling: 5,
+    shootingAccuracy: 5,
+    shootingRange: 5,
+    offensiveRead: 5,
+    checking: 5,
+    hitting: 5,
+    positioning: 5,
+    stickchecking: 5,
+    shotBlocking: 5,
+    faceoffs: 5,
+    defensiveRead: 5,
+    acceleration: 5,
+    agility: 5,
+    balance: 5,
+    speed: 5,
+    strength: 5,
+    stamina: 14,
+    fighting: 5,
+    aggression: 5,
+    bravery: 5,
+    determination: 15,
+    teamPlayer: 15,
+    leadership: 15,
+    temperament: 15,
+    professionalism: 15,
+  },
+  name: '',
+  handedness: 'Right',
+  jerseyNumber: null,
+  height: null,
+  weight: null,
+  indexRecords: [] as IndexPlayerID[],
+} as const;
+
+export const generateIndexLink = (indexRecord: Partial<IndexPlayerID>) =>
+  `https://index.simulationhockey.com/${LEAGUE_LINK_MAP[
+    indexRecord?.leagueID ?? 0
+  ].toLowerCase()}/player/${indexRecord?.indexID}?season=${
+    indexRecord?.startSeason
+  }`;

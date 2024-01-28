@@ -165,8 +165,8 @@ export default async function handler(
           throw new Error('error');
         } else {
           costModifier =
-            currentPlayer[0].season === currentSeason[0].season
-              ? REDISTRIBUTION_COSTS.sophomore
+            (currentPlayer[0].season ?? 0) - 1 === currentSeason[0].season
+              ? REDISTRIBUTION_COSTS.rookie
               : REDISTRIBUTION_COSTS.standard;
 
           if (

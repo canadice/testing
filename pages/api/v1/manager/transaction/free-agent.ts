@@ -58,6 +58,12 @@ export default async function handler(
     !player.length ||
     !season.length ||
     (manager[0].leagueID === 1 && player[0].appliedTPE > SMJHL_SOPHOMORE_CAP) ||
+    (manager[0].leagueID === 1 &&
+      player[0].season &&
+      player[0].season < season[0].season - 2) ||
+    (manager[0].leagueID === 0 &&
+      player[0].season &&
+      player[0].season >= season[0].season) ||
     player[0].currentTeamID !== null
   ) {
     res.status(400).end('Invalid request');

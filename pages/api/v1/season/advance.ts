@@ -1,4 +1,4 @@
-import { SEASON_START_DELAY } from 'components/head-office/constants';
+import { SEASON_START_DELAY } from 'components/headOffice/constants';
 import { checkUserAuthorization } from 'lib/checkUserAuthorization';
 import { CAN_START_NEXT_SEASON } from 'lib/constants';
 import { query } from 'lib/db';

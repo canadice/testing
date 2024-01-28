@@ -1,4 +1,4 @@
-import { AddIcon, ArrowBackIcon, CloseIcon } from '@chakra-ui/icons';
+import { AddIcon, ArrowBackIcon, CloseIcon, CopyIcon } from '@chakra-ui/icons';
 import {
   Button,
   FormControl,
@@ -27,15 +27,15 @@ import {
   Tr,
 } from '@chakra-ui/react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { UsernameSearch } from '../../components/common/UsernameSearch';
-import { useSession } from '../../contexts/AuthContext';
-import { ToastContext } from '../../contexts/ToastContext';
-import { useCurrentPlayer } from '../../hooks/useCurrentPlayer';
+import { UsernameSearch } from 'components/common/UsernameSearch';
+import { useSession } from 'contexts/AuthContext';
+import { ToastContext } from 'contexts/ToastContext';
+import { useCurrentPlayer } from 'hooks/useCurrentPlayer';
 import _ from 'lodash';
-import { useCallback, useContext, useEffect, useState } from 'react';
-import { BankTransaction, BankTransactionTypes, UserInfo } from '../../typings';
-import { formatCurrency } from '../../utils/formatCurrency';
-import { mutate } from '../../utils/query';
+import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { BankTransaction, BankTransactionTypes, UserInfo } from 'typings';
+import { formatCurrency } from 'utils/formatCurrency';
+import { mutate } from 'utils/query';
 
 import { TransactionData } from './CreateBankTransaction';
 
@@ -50,13 +50,9 @@ const parseAmount = (value: string) => {
     : value.replace(/[^0-9-]/g, '');
 };
 
-// 
 export const CompleteBankTransaction = ({
-  // The transaction data provided
   transactionData,
-  // If the modal is open
   isOpen,
-  // Handles closing the modal
   handleCloseModal,
   handleResetForm,
 }: {
@@ -165,6 +161,15 @@ export const CompleteBankTransaction = ({
     transactions,
   ]);
 
+  const transactionsRef = useRef<Array<HTMLInputElement | null>>([]);
+
+  useEffect(() => {
+    transactionsRef.current = transactionsRef.current.slice(
+      0,
+      transactions.length,
+    );
+  }, [transactions]);
+
   const handleAmountChange = useCallback((value: string, id: string) => {
     setTransactions((prev) =>
       prev.map((t) => {
@@ -188,6 +193,20 @@ export const CompleteBankTransaction = ({
       }),
     );
   }, []);
+
+  const handleCopyDescriptionFromFirst = useCallback(() => {
+    const firstDetailDescription = transactions[0].description ?? '';
+
+    setTransactions((prev) =>
+      prev.map((t) => {
+        return { ...t, description: firstDetailDescription };
+      }),
+    );
+
+    transactionsRef.current.forEach((item) => {
+      if (item) item.value = firstDetailDescription;
+    });
+  }, [transactions]);
 
   const handleAddUser = useCallback(
     (user: UserInfo) => {
@@ -234,9 +253,23 @@ export const CompleteBankTransaction = ({
         </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
-          <div className="mb-2 text-lg font-bold">
-            {transactionData.groupName}
+          <div className="mb-2 flex justify-between">
+            <div className="text-lg font-bold">{transactionData.groupName}</div>
+
+            {!isReviewing &&
+              transactionData.type !== 'transfer' &&
+              transactions.length > 1 && (
+                <Button
+                  leftIcon={<CopyIcon />}
+                  onClick={handleCopyDescriptionFromFirst}
+                  size="xs"
+                  isDisabled={!transactions[0].description}
+                >
+                  Copy first description to all lines
+                </Button>
+              )}
           </div>
+
           {isReviewing ? (
             <TableContainer>
               <Table variant="striped" width="100%">
@@ -288,7 +321,7 @@ export const CompleteBankTransaction = ({
                   </FormErrorMessage>
                 </FormControl>
               )}
-              {transactions.map((transaction) => (
+              {transactions.map((transaction, index) => (
                 <div
                   key={transaction.tempId}
                   className="flex min-h-fit flex-nowrap items-stretch space-x-2"
@@ -341,6 +374,7 @@ export const CompleteBankTransaction = ({
                     </FormControl>
                     <FormControl>
                       <Input
+                        ref={(el) => (transactionsRef.current[index] = el)}
                         placeholder="Description..."
                         type="text"
                         max={500}

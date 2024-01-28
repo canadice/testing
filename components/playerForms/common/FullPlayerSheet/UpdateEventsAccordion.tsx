@@ -33,6 +33,7 @@ export const UpdateEventsAccordion = ({
               className="bg-grey900 p-2 text-grey100"
               style={borderStyle}
               _hover={{}}
+              padding="8px"
             >
               <span className="flex-1 text-left font-bold">Update Events</span>
               <AccordionIcon />

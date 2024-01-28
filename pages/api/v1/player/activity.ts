@@ -230,6 +230,7 @@ export default async function handler(
   );
 
   let isRookie = false;
+  let isDFA = false;
   let hasDoneActivity = false;
 
   if (
@@ -237,6 +238,7 @@ export default async function handler(
     'error' in currentPlayer ||
     !currentPlayer.length ||
     !currentSeason.length ||
+    currentPlayer[0].suspended ||
     currentPlayer[0].status !== 'active'
   ) {
     res.status(403).end('Invalid request');
@@ -245,6 +247,10 @@ export default async function handler(
     isRookie =
       currentPlayer[0]?.season === null ||
       currentPlayer[0]?.season > currentSeason[0].season;
+
+    isDFA =
+      currentPlayer[0]?.season === null ||
+      currentPlayer[0]?.season > currentSeason[0].season + 1;
 
     hasDoneActivity = checkHasDoneActivity(
       isRookie,
@@ -270,6 +276,8 @@ export default async function handler(
     (req.body.type !== 'Activity Check' &&
       req.body.type !== 'Training Camp' &&
       currentPlayer[0].bankBalance - activityCost < MAXIMUM_BANK_OVERDRAFT) ||
+    ((req.body.type === 'Coaching' || req.body.type === 'Training Camp') &&
+      isDFA) ||
     activityCost < 0 ||
     hasDoneActivity
   ) {

@@ -98,7 +98,9 @@ export default () => {
     ],
   });
 
-  const [playerType, setPlayerType] = useState<string>('Everyone');
+  const [playerType, setPlayerType] = useState<string>(
+    PLAYER_TASK_STATUS.ROOKIE,
+  );
   const [taskType, setTaskType] = useState<TaskType>('point task');
   const [taskDescription, setTaskDescription] = useState<string>('');
   const [taskThread, setTaskThread] = useState<string | null>(null);
@@ -359,13 +361,17 @@ export default () => {
                     name="playerGroup"
                     onChange={(e) => changePlayerType(e.currentTarget.value)}
                   >
-                    <option>Everyone</option>
                     <option value={PLAYER_TASK_STATUS.ROOKIE}>
                       {PLAYER_TASK_STATUS.ROOKIE}
                     </option>
                     <option value={PLAYER_TASK_STATUS.SHL}>
                       {PLAYER_TASK_STATUS.SHL}
                     </option>
+                    <RoleGuard
+                      userRoles={['SHL_HO', 'SHL_COMMISSIONER', 'SMJHL_INTERN']}
+                    >
+                      <option>Everyone</option>
+                    </RoleGuard>
                   </Select>
                 </div>
 

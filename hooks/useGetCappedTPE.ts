@@ -1,20 +1,33 @@
 import { SMJHL_ROOKIE_CAP, SMJHL_SOPHOMORE_CAP } from 'lib/constants';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Player } from 'typings';
 
 export const useGetCappedTPE = (player: Player | undefined, season: number) => {
-  const [currentTPECap, setCurrentTPECap] = useState(Infinity);
+  const currentTPECap = useMemo(() => {
+    if (!player?.draftSeason || !player.currentLeague) {
+      return SMJHL_ROOKIE_CAP;
+    } else {
+      if (player.currentLeague === 'SHL') {
+        return Infinity;
+      } else {
+        if (season <= player.draftSeason) {
+          return SMJHL_ROOKIE_CAP;
+        } else {
+          return SMJHL_SOPHOMORE_CAP;
+        }
+      }
+    }
+  }, [player, season]);
 
   const totalTPE = useMemo(() => {
     if (!player) {
       return 0;
     }
 
-    if (!player || !player?.draftSeason || !player.currentLeague) {
+    if (!player?.draftSeason || !player.currentLeague) {
       if (player.totalTPE < SMJHL_ROOKIE_CAP) {
         return player.totalTPE;
       } else {
-        setCurrentTPECap(SMJHL_ROOKIE_CAP);
         return SMJHL_ROOKIE_CAP;
       }
     } else {
@@ -25,14 +38,12 @@ export const useGetCappedTPE = (player: Player | undefined, season: number) => {
           if (player.totalTPE < SMJHL_ROOKIE_CAP) {
             return player.totalTPE;
           } else {
-            setCurrentTPECap(SMJHL_ROOKIE_CAP);
             return SMJHL_ROOKIE_CAP;
           }
         } else {
           if (player.totalTPE < SMJHL_SOPHOMORE_CAP) {
             return player.totalTPE;
           } else {
-            setCurrentTPECap(SMJHL_SOPHOMORE_CAP);
             return SMJHL_SOPHOMORE_CAP;
           }
         }

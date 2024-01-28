@@ -73,7 +73,7 @@ export default async function handler(
     !season.length ||
     !event.length ||
     player[0].currentTeamID !== manager[0].teamID ||
-    player[0].currentLeague !== 'SHL' ||
+    player[0].currentLeague === 'SMJHL' ||
     player[0].season === null ||
     (player[0].season === season[0].season - 1 &&
       player[0].appliedTPE > SMJHL_ROOKIE_CAP) ||

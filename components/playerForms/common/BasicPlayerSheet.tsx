@@ -2,7 +2,7 @@ import { Alert, AlertIcon } from '@chakra-ui/react';
 import classnames from 'classnames';
 import { startCase } from 'lodash';
 import { PropsWithChildren, useMemo } from 'react';
-import { Player, OutfieldAttributes, KeeperAttributes } from '../../../typings';
+import { Player, SkaterAttributes, GoalieAttributes } from 'typings';
 
 const excludedInfo = [
   'userID',
@@ -34,6 +34,7 @@ const excludedInfo = [
   'taskStatus',
   'positionChanged',
   'attributes',
+  'indexRecords',
 ];
 
 const CommonPlayerColumn = ({
@@ -55,9 +56,9 @@ const CommonPlayerColumn = ({
         key={name}
         className={classnames(
           title === 'Attributes' &&
-          typeof value === 'number' &&
-          value >= 15 &&
-          'text-[color:red]',
+            typeof value === 'number' &&
+            value >= 15 &&
+            'text-[color:red]',
           'flex items-center justify-between py-4 px-6 font-mont leading-5',
         )}
       >
@@ -73,8 +74,8 @@ const BasicPlayerSheet = ({
   attributes,
   children,
 }: PropsWithChildren<{
-  info: Partial<Omit<Player, 'attributes'>>;
-  attributes: Partial<OutfieldAttributes> | Partial<KeeperAttributes>;
+  info: Partial<Omit<Player, 'attributes' | 'indexRecords'>>;
+  attributes: Partial<SkaterAttributes> | Partial<GoalieAttributes>;
 }>) => {
   const [firstSet, secondSet] = useMemo(() => {
     const parsedAttributeData = Object.keys(attributes)

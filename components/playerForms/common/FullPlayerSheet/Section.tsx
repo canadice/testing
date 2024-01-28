@@ -8,7 +8,7 @@ export const Section = ({
 }: PropsWithChildren<{
   label: string;
   cols?: 2 | 3;
-  borderStyle: HTMLAttributes<HTMLDivElement>['style'];
+  borderStyle?: HTMLAttributes<HTMLDivElement>['style'];
 }>) => (
   <div>
     <div className="bg-grey900 p-2 text-grey100" style={borderStyle}>

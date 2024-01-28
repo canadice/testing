@@ -1,5 +1,4 @@
 import { useQuery } from '@tanstack/react-query';
-import { useSession } from 'contexts/AuthContext';
 import { SHL_GENERAL_DISCORD } from 'lib/constants';
 import { useMemo } from 'react';
 import { Seasons } from 'typings';
@@ -13,15 +12,12 @@ export const useSeason = (): {
   nextDiscord: string;
   loading: boolean;
 } => {
-  const { session, loggedIn } = useSession();
-
   const { data: seasonData, isLoading: isLoadingSeason } = useQuery<Seasons>({
-    queryKey: ['currentSeason', session?.token],
+    queryKey: ['currentSeason'],
     queryFn: () =>
       query(`api/v1/season`, {
         headers: {},
       }),
-    enabled: loggedIn,
   });
 
   const currentSeason = useMemo(() => seasonData, [seasonData]);

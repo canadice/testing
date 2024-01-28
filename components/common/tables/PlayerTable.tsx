@@ -1,5 +1,6 @@
 import { ExternalLinkIcon } from '@chakra-ui/icons';
 import { Button, Progress } from '@chakra-ui/react';
+import { Text } from '@chakra-ui/react';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -96,6 +97,17 @@ export const PlayerTable = ({
       }),
       columnHelper.accessor('bankedTPE', {
         header: () => <TableHeader title="Banked TPE">Banked TPE</TableHeader>,
+        cell: (props) => {
+          const cellValue = props.getValue();
+          return (
+            <Text
+              className="text-right font-mont"
+              color={cellValue < 0 ? 'red' : 'default'}
+            >
+              {cellValue}
+            </Text>
+          );
+        },
         enableGlobalFilter: false,
       }),
       columnHelper.accessor('draftSeason', {

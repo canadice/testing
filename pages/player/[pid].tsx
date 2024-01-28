@@ -1,5 +1,5 @@
 import { Alert, AlertIcon, AlertTitle, Button } from '@chakra-ui/react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { PermissionGuard } from 'components/auth/PermissionGuard';
 import { PageWrapper } from 'components/common/PageWrapper';
 import { FullPlayerSheet } from 'components/playerForms/common/FullPlayerSheet';
@@ -9,17 +9,23 @@ import {
 } from 'components/playerForms/editAttributes/EditAttributesForm';
 import { useSession } from 'contexts/AuthContext';
 import { ToastContext } from 'contexts/ToastContext';
-import { useOtherPlayer } from 'hooks/useOtherPlayer';
 import { useSeason } from 'hooks/useSeason';
 import { GetServerSideProps } from 'next';
-import { useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { GoalieAttributes, Player, SkaterAttributes } from 'typings';
-import { mutate } from 'utils/query';
+import { mutate, query } from 'utils/query';
 
 export default ({ playerId }: { playerId: number }) => {
   const { loggedIn, session } = useSession();
   const { season } = useSeason();
-  const { player, loading } = useOtherPlayer(playerId);
+
+  const { data: players, isLoading: loading } = useQuery<Player[]>({
+    queryKey: ['otherPlayerInfo', playerId],
+    queryFn: () => query(`api/v1/player?pid=${playerId}`),
+  });
+
+  const player = useMemo(() => players?.[0] ?? undefined, [players]);
+
   const [isRegressingPlayer, setIsRegressingPlayer] = useState<boolean>(false);
   const setIsRegressing = useCallback(() => {
     setIsRegressingPlayer(true);
@@ -50,13 +56,16 @@ export default ({ playerId }: { playerId: number }) => {
       }),
   });
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const submitEdit = useCallback(
     async (
       changes: AttributeChange[],
       info: Partial<Player>,
       goalie?: Partial<GoalieAttributes>,
       skater?: Partial<SkaterAttributes>,
-    ) =>
+    ) => {
+      setIsSubmitting(true);
       updatePlayer.mutate(
         {
           type: 'Regression',
@@ -67,6 +76,7 @@ export default ({ playerId }: { playerId: number }) => {
         },
         {
           onError: (e) => {
+            setIsSubmitting(false);
             addToast({
               title: `Changes not saved`,
               description: `We were unable to perform your regression. Please try again.`,
@@ -75,6 +85,7 @@ export default ({ playerId }: { playerId: number }) => {
             throw new Error(`error: ${e}`);
           },
           onSettled: () => {
+            setIsSubmitting(false);
             setIsRegressingPlayer(false);
             addToast({
               title: `Player successfully updated`,
@@ -84,7 +95,8 @@ export default ({ playerId }: { playerId: number }) => {
             queryClient.invalidateQueries({ queryKey: ['otherPlayerInfo'] });
           },
         },
-      ),
+      );
+    },
     [queryClient, addToast, updatePlayer],
   );
 
@@ -115,6 +127,7 @@ export default ({ playerId }: { playerId: number }) => {
               attributeFormType={'Regression'}
               season={season}
               onSubmitCallback={submitEdit}
+              isSubmitting={isSubmitting}
               onCancel={() => setIsRegressingPlayer(false)}
             />
           ) : (

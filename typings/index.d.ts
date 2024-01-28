@@ -37,6 +37,13 @@ export type UpdateEvents = {
   status: 'pending' | 'denied' | 'approved' | 'NotRequired';
 };
 
+export type IndexPlayerID = {
+  playerUpdateID: number;
+  leagueID: number;
+  indexID: number;
+  startSeason: number;
+};
+
 export type Player = {
   uid: number;
   username: string;
@@ -46,21 +53,21 @@ export type Player = {
   status: 'active' | 'pending' | 'retired' | 'denied';
   name: string;
   position:
-  | 'Center'
-  | 'Left Wing'
-  | 'Right Wing'
-  | 'Goalie'
-  | 'Left Defense'
-  | 'Right Defense';
-  footedness: 'Left' | 'Right';
+    | 'Center'
+    | 'Left Wing'
+    | 'Right Wing'
+    | 'Goalie'
+    | 'Left Defense'
+    | 'Right Defense';
+  handedness: 'Left' | 'Right';
   recruiter: string | null;
   render: string | null;
-  kitNumber: number | null;
+  jerseyNumber: number | null;
   height: string | null;
   weight: number | null;
   birthplace: string | null;
   totalTPE: number;
-  currentLeague: 'SSL' | 'Academy' | null;
+  currentLeague: 'SMJHL' | 'SHL' | null;
   currentTeamID: number | null;
   shlRightsTeamID: number | null;
   iihfNation: string | null;
@@ -74,88 +81,71 @@ export type Player = {
   activityCheckComplete: boolean;
   trainingCampComplete: boolean;
   bankBalance: number;
-  taskStatus: 'Academy Player' | 'SSL';
-  attributes: OutfieldAttributes | KeeperAttributes;
+  taskStatus: 'Draftee Free Agent' | 'SMJHL Rookie' | 'SHL/Send-down';
+  attributes: SkaterAttributes | GoalieAttributes;
+  isSuspended: boolean;
+  indexRecords: IndexPlayerID[] | null;
 };
 
-export type KeeperAttributes = {
-  acceleration: number;
-  agility: number;
-  balance: number;
-  jumpingReach: number;
-  naturalFitness: number;
-  pace: number;
-  stamina: number;
-  strength: number;
-  aggression: number;
-  anticipation: number;
-  bravery: number;
-  composure: number;
-  concentration: number;
-  decisions: number;
-  determination: number;
-  flair: number;
-  leadership: number;
-  offTheBall: number;
+export type PlayerSnap = Omit<
+  Player,
+  | 'trainingPurchased'
+  | 'activityCheckComplete'
+  | 'trainingCampComplete'
+  | 'bankBalance'
+  | 'indexRecords'
+>;
+
+export type GoalieAttributes = {
+  blocker: number;
+  glove: number;
+  passing: number;
+  pokeCheck: number;
   positioning: number;
-  teamWork: number;
-  vision: number;
-  workRate: number;
-  aerialReach: number;
-  commandOfArea: number;
-  communication: number;
-  eccentricity: number;
-  handling: number;
-  kicking: number;
-  oneOnOnes: number;
+  rebound: number;
+  recovery: number;
+  puckhandling: number;
+  lowShots: number;
   reflexes: number;
-  tendencyToRush: number;
-  tendencyToPunch: number;
-  throwing: number;
-  firstTouch: number;
-  freeKick: number;
-  passing: number;
-  penaltyTaking: number;
-  technique: number;
+  skating: number;
+  aggression: number;
+  mentalToughness: number;
+  determination: number;
+  teamPlayer: number;
+  leadership: number;
+  goaltenderStamina: number;
+  professionalism: number;
 };
 
-export type OutfieldAttributes = {
+export type SkaterAttributes = {
+  screening: number;
+  gettingOpen: number;
+  passing: number;
+  puckhandling: number;
+  shootingAccuracy: number;
+  shootingRange: number;
+  offensiveRead: number;
+  checking: number;
+  hitting: number;
+  positioning: number;
+  stickchecking: number;
+  shotBlocking: number;
+  faceoffs: number;
+  defensiveRead: number;
   acceleration: number;
   agility: number;
   balance: number;
-  jumpingReach: number;
-  naturalFitness: number;
-  pace: number;
-  stamina: number;
+  speed: number;
   strength: number;
+  stamina: number;
+  fighting: number;
   aggression: number;
-  anticipation: number;
   bravery: number;
-  composure: number;
-  concentration: number;
-  decisions: number;
   determination: number;
-  flair: number;
+  teamPlayer: number;
   leadership: number;
-  offTheBall: number;
-  positioning: number;
-  teamWork: number;
-  vision: number;
-  workRate: number;
-  corners: number;
-  crossing: number;
-  dribbling: number;
-  finishing: number;
-  firstTouch: number;
-  freeKick: number;
-  heading: number;
-  longShots: number;
-  longThrows: number;
-  marking: number;
-  passing: number;
-  penaltyTaking: number;
-  tackling: number;
-  technique: number;
+  temperament: number;
+  professionalism: number;
 };
 
 export type Team = {
@@ -182,13 +172,13 @@ export type Team = {
   };
 };
 
-export type TeamManager = {
+export type GeneralManager = {
   leagueID: number;
   teamID: number;
-  managerID: number;
-  managerUsername: string;
-  assmanID: number;
-  assmanUsername: string;
+  gmID: number;
+  gmUsername: string;
+  cogmID: number;
+  cogmUsername: string;
 };
 
 export type TPETimeline = {
@@ -285,4 +275,39 @@ export type BankTransactionSummary = {
   approvedDate?: string;
   reversedBy?: string;
   reversedDate?: string;
+};
+
+export type DraftInfo = {
+  playerUpdateID: number | null;
+  playerName: string;
+  userID: number | null;
+  leagueID: number;
+  seasonID: number;
+  teamID: number;
+  round: number;
+  draftNumber: number;
+};
+
+export type PlayerAchievement = {
+  playerUpdateID: number | null;
+  playerName: string;
+  userID: number | null;
+  fhmID: number;
+  leagueID: number;
+  seasonID: number;
+  teamID: number;
+  achievement: number;
+  achievementName: string;
+  achievementDescription: string;
+  isAward: boolean;
+  won: boolean;
+};
+
+export type TeamAchievement = {
+  teamID: number;
+  leagueID: number;
+  seasonID: number;
+  achievement: number;
+  achievementName: string;
+  achievementDescription: string;
 };

@@ -137,11 +137,10 @@ export const ChangeIcon: React.FC<Props> = ({ type }) => {
           ? false
           : CHANGE_COSTS.position;
       case 'Render':
-        return CHANGE_COSTS.render;
       case 'JerseyNumber':
-        return CHANGE_COSTS.jerseyNumber;
-      default:
         return false;
+      default:
+        return Infinity;
     }
   }, [player?.position, player?.draftSeason, season, type]);
 
@@ -178,13 +177,16 @@ export const ChangeIcon: React.FC<Props> = ({ type }) => {
     }
 
     if (reasons[type] === '') {
-      if (changeCost > (player?.bankBalance ?? 0)) {
+      if (
+        typeof changeCost === 'number' &&
+        changeCost > (player?.bankBalance ?? 0)
+      ) {
         reasons[
           type
         ] = `You cannot submit a change for ${type} because your bank balance of ${formatCurrency(
           player?.bankBalance ?? 0,
         )} does not meet or exceed the change cost of ${formatCurrency(
-          typeof changeCost === 'number' ? changeCost : 0,
+          changeCost,
         )}.`;
       }
     }
@@ -239,7 +241,7 @@ export const ChangeIcon: React.FC<Props> = ({ type }) => {
               </Alert>
             ) : (
               <>
-                {changeCost !== 0 && changeCost && (
+                {typeof changeCost === 'number' && changeCost > 0 && (
                   <Alert variant="subtle" status="info" className="mb-4">
                     <AlertIcon />
                     <AlertDescription fontSize="sm">

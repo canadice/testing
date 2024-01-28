@@ -156,7 +156,7 @@ export const EditAttributesFormBase = ({
   const redistributionInfo = useMemo(() => {
     const values = {
       totalRedistributedTPE: 0,
-      isSophomore: false,
+      isRookie: false,
       totalCost: 0,
     };
 
@@ -164,7 +164,7 @@ export const EditAttributesFormBase = ({
       return values;
     }
 
-    values.isSophomore = player.draftSeason === season;
+    values.isRookie = (player.draftSeason ?? 0) - 1 === season;
 
     const attributeCostMap = isGoalie
       ? GOALIE_ATTRIBUTE_COSTS
@@ -186,8 +186,8 @@ export const EditAttributesFormBase = ({
 
     values.totalCost =
       values.totalRedistributedTPE *
-      (values.isSophomore
-        ? REDISTRIBUTION_COSTS.sophomore
+      (values.isRookie
+        ? REDISTRIBUTION_COSTS.rookie
         : REDISTRIBUTION_COSTS.standard);
 
     return values;
@@ -234,8 +234,8 @@ export const EditAttributesFormBase = ({
       const validations = {
         insufficientFunds:
           totalRedistributedTPE *
-            (redistributionInfo?.isSophomore
-              ? REDISTRIBUTION_COSTS.sophomore
+            (redistributionInfo?.isRookie
+              ? REDISTRIBUTION_COSTS.rookie
               : REDISTRIBUTION_COSTS.standard) >
           player.bankBalance,
         usedSeasonalRedistribution:
@@ -252,7 +252,7 @@ export const EditAttributesFormBase = ({
     isGoalie,
     player.bankBalance,
     player.usedRedistribution,
-    redistributionInfo?.isSophomore,
+    redistributionInfo?.isRookie,
     redistributionInfo?.totalRedistributedTPE,
   ]);
 

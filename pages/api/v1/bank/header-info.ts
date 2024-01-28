@@ -14,6 +14,8 @@ export type BankAccountHeaderData = {
   bankBalance: number;
   currentLeague: 'SHL' | 'SMJHL' | null;
   currentTeamID: number | null;
+  playerUpdateID: number | null;
+  playerName: string | null;
 };
 
 const cors = Cors({
@@ -90,5 +92,7 @@ export default async (
     bankBalance: bank.bankBalance,
     currentLeague: playerResponse[0]?.currentLeague,
     currentTeamID: playerResponse[0]?.currentTeamID,
+    playerUpdateID: playerResponse[0]?.playerUpdateID,
+    playerName: playerResponse[0]?.name,
   });
 };

@@ -30,7 +30,7 @@ export const CallUp = ({
     queryKey: ['playerCallUps', teamID],
     queryFn: () =>
       query(
-        `api/v1/player?leagueID=1&teamRightsID=${teamID}&status=active`,
+        `api/v1/player?notLeagueID=0&teamRightsID=${teamID}&status=active`,
         undefined,
       ),
   });

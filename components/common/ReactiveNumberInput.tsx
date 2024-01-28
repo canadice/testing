@@ -11,6 +11,7 @@ import {
   NumberInputProps,
 } from '@chakra-ui/react';
 import classnames from 'classnames';
+import { useMemo } from 'react';
 
 export const ReactiveNumberInput = ({
   label,
@@ -25,11 +26,46 @@ export const ReactiveNumberInput = ({
       ...props,
     });
 
+  const isIncreaseDisabled = useMemo(
+    () => props.isDisabled || (props.value ?? 0) >= (props.max ?? 0),
+    [props.value, props.max, props.isDisabled],
+  );
+
+  const isDecreaseDisabled = useMemo(
+    () => props.isDisabled || (props.value ?? 0) <= (props.min ?? 0),
+    [props.value, props.min, props.isDisabled],
+  );
+
+  const incrementStyle = useMemo(
+    () =>
+      isIncreaseDisabled
+        ? {}
+        : {
+            bg: 'green.100',
+            _active: { bg: 'green.200' },
+            _hover: { bg: 'green.200' },
+          },
+    [isIncreaseDisabled],
+  );
+
+  const decrementStyle = useMemo(
+    () =>
+      isDecreaseDisabled
+        ? {}
+        : {
+            bg: 'pink.100',
+            _active: { bg: 'pink.200' },
+            _hover: { bg: 'pink.200' },
+          },
+    [isDecreaseDisabled],
+  );
+
   return (
     <>
       <div className="flex items-center space-x-2 md:hidden">
         <IconButton
           aria-label={`Decrease value of ${label}`}
+          colorScheme={isDecreaseDisabled ? 'gray' : 'red'}
           icon={<MinusIcon />}
           {...getDecrementButtonProps()}
         />
@@ -42,6 +78,7 @@ export const ReactiveNumberInput = ({
         />
         <IconButton
           aria-label={`Increase value of ${label}`}
+          colorScheme={isIncreaseDisabled ? 'gray' : 'green'}
           icon={<AddIcon />}
           {...getIncrementButtonProps()}
         />
@@ -55,8 +92,8 @@ export const ReactiveNumberInput = ({
       >
         <NumberInputField />
         <NumberInputStepper>
-          <NumberIncrementStepper />
-          <NumberDecrementStepper />
+          <NumberIncrementStepper {...incrementStyle} />
+          <NumberDecrementStepper {...decrementStyle} />
         </NumberInputStepper>
       </NumberInput>
     </>

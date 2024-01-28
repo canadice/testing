@@ -1,10 +1,11 @@
 import { IIHF_COUNTRIES } from 'components/playerForms/constants';
 import Cors from 'cors';
+import { SMJHL_ROOKIE_CAP, SMJHL_SOPHOMORE_CAP } from 'lib/constants';
 import { query } from 'lib/db';
 import use from 'lib/middleware';
 import { NextApiRequest, NextApiResponse } from 'next';
 import SQL, { SQLStatement } from 'sql-template-strings';
-import { Player } from 'typings';
+import { IndexPlayerID, Player } from 'typings';
 import {
   InternalBankBalance,
   InternalGoalieAttributes,
@@ -33,9 +34,12 @@ export default async (
     uid,
     teamID,
     leagueID,
+    notLeagueID,
     teamRightsID,
     status,
     notStatus,
+    minSeason,
+    maxSeason,
     minAppliedTPE,
     maxAppliedTPE,
     sendDownsForTeam,
@@ -48,14 +52,21 @@ export default async (
       parseInt(Array.isArray(leagueID) ? 'SHL' : leagueID ?? 'SHL'),
     )?.toUpperCase() ?? 'SHL';
 
+  const notLeagueName =
+    leagueIdToName(
+      parseInt(Array.isArray(notLeagueID) ? 'SHL' : notLeagueID ?? 'SHL'),
+    )?.toUpperCase() ?? 'SHL';
+
   let season = 0;
+  let seasonStartDate = '';
 
   const seasonResponse = await query<InternalSeasons>(
-    SQL`SELECT season FROM seasons ORDER BY season DESC LIMIT 1;`,
+    SQL`SELECT * FROM seasons ORDER BY season DESC LIMIT 1;`,
   );
 
   if (!('error' in seasonResponse || !seasonResponse.length)) {
     season = seasonResponse[0].season;
+    seasonStartDate = seasonResponse[0].startDate;
   }
 
   let seasonQuery: SQLStatement | boolean = false;
@@ -71,6 +82,7 @@ export default async (
           | InternalSkaterAttributes
           | InternalGoalieAttributes
           | string;
+        indexRecords: IndexPlayerID[] | string;
       }
   >(
     SQL`SELECT player.*, tpe.*, bank.*, counts.*, user.*, task.status as taskStatus, 
@@ -124,7 +136,13 @@ export default async (
               'leadership', skater.leadership, 
               'temperament', skater.temperament, 
               'professionalism', skater.professionalism)
-            END AS attributes
+            END AS attributes,
+              (SELECT CONCAT(
+                '[', 
+                GROUP_CONCAT(JSON_OBJECT('leagueID', indexPlayerID.leagueID, 'indexID', indexPlayerID.indexID, 'startSeason', indexPlayerID.startSeason)),
+                ']'
+              ) FROM indexPlayerID WHERE indexPlayerID.playerUpdateID = player.playerUpdateID) 
+              AS indexRecords
           FROM playerInfo as player
         INNER JOIN bankBalance as bank ON player.userID = bank.uid
         INNER JOIN TPECounts as tpe ON player.playerUpdateID = tpe.playerUpdateID
@@ -147,7 +165,8 @@ export default async (
       .append(
         teamID != null && leagueID !== '2'
           ? teamID === 'ufa'
-            ? SQL`AND player.currentTeamID IS NULL AND player.season!=${season} `
+            ? SQL`AND player.currentTeamID IS NULL 
+                  AND (player.retirementDate > ${seasonStartDate} OR player.retirementDate IS NULL) `
             : SQL`AND player.currentTeamID=${teamID} `
           : '',
       )
@@ -170,6 +189,13 @@ export default async (
           : '',
       )
       .append(
+        notLeagueID != null
+          ? SQL`AND !(player.currentLeague<=>${notLeagueName}) `
+          : '',
+      )
+      .append(minSeason != null ? SQL`AND player.season>=${minSeason} ` : '')
+      .append(maxSeason != null ? SQL`AND player.season<=${maxSeason} ` : '')
+      .append(
         minAppliedTPE != null ? SQL`AND tpe.appliedTPE>=${minAppliedTPE} ` : '',
       )
       .append(
@@ -177,8 +203,8 @@ export default async (
       )
       .append(
         sendDownsForTeam != null
-          ? SQL`AND player.currentLeague='SHL' AND player.currentTeamID=${sendDownsForTeam} AND tpe.appliedTPE<=350 AND player.season=${season} 
-                OR player.currentLeague='SHL' AND player.currentTeamID=${sendDownsForTeam} AND tpe.appliedTPE<=425 AND player.season>=${
+          ? SQL`AND player.currentLeague='SHL' AND player.currentTeamID=${sendDownsForTeam} AND tpe.appliedTPE<=${SMJHL_ROOKIE_CAP} AND player.season=${season} 
+                OR player.currentLeague='SHL' AND player.currentTeamID=${sendDownsForTeam} AND tpe.appliedTPE<=${SMJHL_SOPHOMORE_CAP} AND player.season>=${
               season - 3
             } `
           : '',
@@ -226,6 +252,8 @@ export default async (
     bankBalance: data.bankBalance,
     taskStatus: data.taskStatus,
     attributes: JSON.parse(data.attributes as string),
+    isSuspended: data.suspended,
+    indexRecords: JSON.parse(data.indexRecords as string),
   }));
 
   res.status(200).json(parsed);

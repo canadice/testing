@@ -15,7 +15,8 @@ import { PageWrapper } from 'components/common/PageWrapper';
 import { SubHeading } from 'components/common/SubHeading';
 import { BankTransactionSummaryTable } from 'components/common/tables/BankTransactionSummaryTable';
 import { useSession } from 'contexts/AuthContext';
-import { useCurrentPlayer } from 'hooks/useCurrentPlayer';
+import { useCookie } from 'hooks/useCookie';
+import config from 'lib/config';
 import { useRouter } from 'next/router';
 import { useCallback, useEffect, useState } from 'react';
 import { BankTransactionSummary } from 'typings';
@@ -39,7 +40,7 @@ const getSavedFilters = () => {
 
 export default () => {
   const { loggedIn } = useSession();
-  const { player } = useCurrentPlayer();
+  const [userid] = useCookie(config.userIDCookieName);
   const router = useRouter();
   const [filters, setFilters] = useState<string>('');
   const [filtersLoaded, setFiltersLoaded] = useState(false);
@@ -108,8 +109,8 @@ export default () => {
               <Button
                 colorScheme="gray"
                 variant="solid"
-                onClick={() => router.push(`/bank/account/${player?.uid}`)}
-                isDisabled={!player}
+                onClick={() => router.push(`/bank/account/${userid}`)}
+                isDisabled={!userid}
               >
                 Your Account
               </Button>

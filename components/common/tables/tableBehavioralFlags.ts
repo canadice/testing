@@ -9,6 +9,15 @@ export const getPlayerTableBehavioralFlags = (
   showTableFilterOptions: false,
 });
 
+export const INDEX_PLAYER_ID_TABLE: TableBehavioralFlags = {
+  stickyFirstColumn: false,
+  showTableFooter: false,
+  showCSVExportButton: false,
+  enablePagination: true,
+  enableFiltering: true,
+  showTableFilterOptions: false,
+};
+
 export const UPDATE_EVENTS_TABLE: TableBehavioralFlags = {
   stickyFirstColumn: false,
   showTableFooter: false,

@@ -57,7 +57,7 @@ export default async function handler(
           if (!alreadyUnretired) {
             removedTPE = Number((r[0].totalTPE * 0.15).toFixed(0));
             return [
-              "UPDATE playerInfo SET status='active' WHERE playerUpdateID=?;",
+              "UPDATE playerInfo SET status='active', retirementDate=NULL WHERE playerUpdateID=?;",
               [req.body.playerUpdateID],
             ];
           }

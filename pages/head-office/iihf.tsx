@@ -47,12 +47,16 @@ export default () => {
   const queryClient = useQueryClient();
   const { addToast } = useContext(ToastContext);
 
-  const [actionedPlayer, setActionedPlayer] = useState<Player | undefined>(
-    undefined,
-  );
+  const [actionedPlayer, setActionedPlayer] = useState<Player | undefined>();
+  const [actionTaken, setActionTaken] = useState<
+    'DELETE' | 'CHANGE' | undefined
+  >();
 
   const setActionedPlayerCallback = useCallback(
-    (player: Player | undefined) => setActionedPlayer(player),
+    (player: Player | undefined, action: 'DELETE' | 'CHANGE' | undefined) => {
+      setActionedPlayer(player);
+      setActionTaken(action);
+    },
     [],
   );
 
@@ -77,34 +81,44 @@ export default () => {
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
-    submitChange.mutate(
-      {
-        pid: actionedPlayer?.pid,
-        nation: selectedNation,
+    const body =
+      actionTaken === 'DELETE'
+        ? { pid: actionedPlayer?.pid }
+        : {
+            pid: actionedPlayer?.pid,
+            nation: selectedNation,
+          };
+
+    submitChange.mutate(body, {
+      onError: () => {
+        addToast({
+          title: `Error`,
+          description: `${
+            actionTaken === 'DELETE'
+              ? `Could not remove IIHF Federation for ${actionedPlayer?.name}. Please try again.`
+              : `Could not assign ${actionedPlayer?.name} to ${selectedNation}. Please try again.`
+          }`,
+          status: 'error',
+        });
       },
-      {
-        onError: () => {
-          addToast({
-            title: `Error`,
-            description: `Could not assign ${actionedPlayer?.name} to ${selectedNation}. Please try again.`,
-            status: 'error',
-          });
-        },
-        onSuccess: () => {
-          addToast({
-            title: `Complete`,
-            description: `${actionedPlayer?.name} successfully assigned to ${selectedNation}`,
-            status: 'success',
-          });
-          setActionedPlayer(undefined);
-          setSelectedNation('');
-          queryClient.invalidateQueries({ queryKey: ['iihfPlayers'] });
-        },
-        onSettled: () => {
-          setIsSubmitting(false);
-        },
+      onSuccess: () => {
+        addToast({
+          title: `Complete`,
+          description: `${
+            actionTaken === 'DELETE'
+              ? `IIHF Federation assignment for ${actionedPlayer?.name} successfully removed`
+              : `${actionedPlayer?.name} successfully assigned to ${selectedNation}`
+          }`,
+          status: 'success',
+        });
+        setActionedPlayer(undefined);
+        setSelectedNation('');
+        queryClient.invalidateQueries({ queryKey: ['iihfPlayers'] });
       },
-    );
+      onSettled: () => {
+        setIsSubmitting(false);
+      },
+    });
   };
 
   return (
@@ -122,54 +136,68 @@ export default () => {
       <Modal
         size="md"
         isOpen={actionedPlayer !== undefined}
-        onClose={() => setActionedPlayerCallback(undefined)}
+        onClose={() => setActionedPlayerCallback(undefined, undefined)}
         isCentered
         scrollBehavior="inside"
       >
         <ModalOverlay />
         <ModalContent>
           <ModalHeader>
-            {actionedPlayer?.name} - {actionedPlayer?.iihfNation}
+            {`${actionedPlayer?.name}${
+              actionedPlayer?.iihfNation
+                ? ` - ${actionedPlayer?.iihfNation}`
+                : ''
+            }`}
           </ModalHeader>
           <ModalCloseButton isDisabled={isSubmitting} />
           <ModalBody>
             <Alert variant="subtle" status="info" className="mb-4">
               <AlertIcon />
-              <AlertDescription fontSize="sm">
-                Current editing IIHF Federation for {actionedPlayer?.name}, who
-                is currently{' '}
-                {actionedPlayer?.iihfNation
-                  ? `assigned to ${actionedPlayer?.iihfNation}.`
-                  : 'unassigned.'}
-                <br />
-                Select the new IIHF Federation below to proceed.
-              </AlertDescription>
+              {actionTaken === 'DELETE' ? (
+                <AlertDescription fontSize="sm">
+                  Are you sure you wish to remove the IIHF Federation for{' '}
+                  {actionedPlayer?.name}, who is currently assigned to{' '}
+                  {actionedPlayer?.iihfNation}?
+                </AlertDescription>
+              ) : (
+                <AlertDescription fontSize="sm">
+                  Currently editing IIHF Federation for {actionedPlayer?.name},
+                  who is{' '}
+                  {actionedPlayer?.iihfNation
+                    ? `assigned to ${actionedPlayer?.iihfNation}.`
+                    : 'unassigned.'}
+                  <br />
+                  Select the new IIHF Federation below to proceed.
+                </AlertDescription>
+              )}
             </Alert>
-            <Select
-              onChange={(e) => setSelectedNation(e.target.value)}
-              placeholder="Select a federation..."
-            >
-              {COUNTRIES.map((country) => {
-                if (country !== 'Other') {
-                  return (
-                    <option
-                      key={country}
-                      selected={country === actionedPlayer?.iihfNation}
-                      value={country}
-                    >
-                      {country}
-                    </option>
-                  );
-                }
-              })}
-            </Select>
+            {actionTaken === 'CHANGE' && (
+              <Select
+                onChange={(e) => setSelectedNation(e.target.value)}
+                placeholder="Select a federation..."
+              >
+                {COUNTRIES.map((country) => {
+                  if (country !== 'Other') {
+                    return (
+                      <option
+                        key={country}
+                        selected={country === actionedPlayer?.iihfNation}
+                        value={country}
+                      >
+                        {country}
+                      </option>
+                    );
+                  }
+                })}
+              </Select>
+            )}
           </ModalBody>
           <ModalFooter className="bottom-0 flex items-center p-2">
             <Button
               colorScheme="gray"
               type="button"
               className="mr-2 w-1/2"
-              onClick={() => setActionedPlayer(undefined)}
+              onClick={() => setActionedPlayerCallback(undefined, undefined)}
               isDisabled={isSubmitting}
             >
               Cancel
@@ -178,7 +206,9 @@ export default () => {
               colorScheme="blue"
               type="button"
               className="w-1/2"
-              isDisabled={!selectedNation.length}
+              isDisabled={
+                actionTaken === 'CHANGE' ? !selectedNation.length : false
+              }
               isLoading={isSubmitting}
               onClick={handleSubmit}
             >

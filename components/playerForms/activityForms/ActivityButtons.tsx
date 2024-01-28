@@ -55,6 +55,11 @@ export const ActivityButtons = () => {
     [player?.draftSeason, season],
   );
 
+  const isDFA = useMemo(
+    () => (player?.draftSeason ? player.draftSeason > season + 1 : undefined),
+    [player?.draftSeason, season],
+  );
+
   const maxPurchasable = useMemo(() => {
     if (player && isRookie !== undefined)
       return isRookie
@@ -190,7 +195,12 @@ export const ActivityButtons = () => {
       <div className="grid grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] gap-3 bg-grey200 p-4">
         <Button
           isLoading={isSubmitting && formType === 'Activity Check'}
-          isDisabled={loading || !player || player.activityCheckComplete}
+          isDisabled={
+            loading ||
+            !player ||
+            player.isSuspended ||
+            player.activityCheckComplete
+          }
           colorScheme="green"
           bg="green.600"
           onClick={() => handleSubmit('Activity Check')}
@@ -199,34 +209,50 @@ export const ActivityButtons = () => {
         </Button>
         <Button
           isLoading={isSubmitting && formType === 'Training'}
-          isDisabled={loading || !player || player.trainingPurchased}
+          isDisabled={
+            loading || !player || player.isSuspended || player.trainingPurchased
+          }
           colorScheme="blue"
           bg="blue.600"
           onClick={() => setFormType('Training')}
         >
           Weekly Training
         </Button>
-        {!player?.trainingCampComplete && (
-          <Button
-            isLoading={isSubmitting && formType === 'Training Camp'}
-            isDisabled={loading || !player || player.trainingCampComplete}
-            colorScheme="blue"
-            bg="blue.600"
-            onClick={() => handleSubmit('Training Camp')}
-          >
-            Training Camp
-          </Button>
-        )}
-        {maxPurchasable > 0 && (
-          <Button
-            isLoading={isSubmitting && formType === 'Coaching'}
-            isDisabled={loading || !player || maxPurchasable === 0}
-            colorScheme="blue"
-            bg="blue.600"
-            onClick={() => setFormType('Coaching')}
-          >
-            Seasonal Coaching
-          </Button>
+        {!isDFA && (
+          <>
+            {!player?.trainingCampComplete && (
+              <Button
+                isLoading={isSubmitting && formType === 'Training Camp'}
+                isDisabled={
+                  loading ||
+                  !player ||
+                  player.isSuspended ||
+                  player.trainingCampComplete
+                }
+                colorScheme="blue"
+                bg="blue.600"
+                onClick={() => handleSubmit('Training Camp')}
+              >
+                Training Camp
+              </Button>
+            )}
+            {maxPurchasable > 0 && (
+              <Button
+                isLoading={isSubmitting && formType === 'Coaching'}
+                isDisabled={
+                  loading ||
+                  !player ||
+                  player.isSuspended ||
+                  maxPurchasable === 0
+                }
+                colorScheme="blue"
+                bg="blue.600"
+                onClick={() => setFormType('Coaching')}
+              >
+                Seasonal Coaching
+              </Button>
+            )}
+          </>
         )}
       </div>
       <Modal
@@ -335,12 +361,12 @@ export const ActivityButtons = () => {
               onClick={() => handleSubmit()}
               isLoading={isSubmitting}
               isDisabled={
-                formType === 'Coaching'
+                (formType === 'Coaching'
                   ? coachingAmount === 0 ||
                     (player?.bankBalance ?? 0) - currentCost <
                       MAXIMUM_BANK_OVERDRAFT ||
                     coachingAmount > maxPurchasable
-                  : !trainingAmount
+                  : !trainingAmount) || player?.isSuspended
               }
               type="submit"
               className="w-1/2"

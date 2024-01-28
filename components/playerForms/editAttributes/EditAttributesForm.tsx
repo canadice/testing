@@ -1,4 +1,5 @@
 import { useFormik } from 'formik';
+import { useGetAvailableTpe } from 'hooks/useCalculateAvailableTPE';
 import { useMemo } from 'react';
 import { Player, GoalieAttributes, SkaterAttributes } from 'typings';
 
@@ -29,6 +30,7 @@ export const EditAttributesForm = ({
   player,
   season,
   onSubmitCallback,
+  isSubmitting,
   onCancel,
 }: {
   attributeFormType: AttributeFormTypes;
@@ -40,6 +42,7 @@ export const EditAttributesForm = ({
     goalie?: Partial<GoalieAttributes>,
     skater?: Partial<SkaterAttributes>,
   ) => Promise<void>;
+  isSubmitting: boolean;
   onCancel: () => void;
 }) => {
   const attributeFormSchema = useMemo(
@@ -70,22 +73,28 @@ export const EditAttributesForm = ({
     }
   }, [attributeFormType, player?.totalTPE]);
 
+  const availableTPE = useGetAvailableTpe({
+    position: player.position,
+    totalTPE: player.totalTPE,
+    attributes: player.attributes,
+  });
+
   const initialFormValues = useMemo(() => {
     if (player)
       return {
         position: player.position ?? 'Center',
         skater: player.attributes as SkaterAttributes,
         goalie: player.attributes as GoalieAttributes,
-        availableTPE: 0,
+        availableTPE,
       };
     else return defaultPlayer;
-  }, [player]);
+  }, [player, availableTPE]);
 
   const {
     errors,
     touched,
     values,
-    isSubmitting,
+    isSubmitting: isFormSubmitting,
     isValid,
     initialValues,
     handleBlur,
@@ -128,7 +137,7 @@ export const EditAttributesForm = ({
     <>
       {player && (
         <EditAttributesFormBase
-          isSubmitting={isSubmitting}
+          isSubmitting={isSubmitting || isFormSubmitting}
           isValid={isValid}
           initialValues={initialValues}
           errors={errors}

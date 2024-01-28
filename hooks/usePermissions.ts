@@ -11,6 +11,7 @@ import {
   CAN_ASSIGN_PLAYER_IIHF_NATION,
   CAN_PROCESS_BANK_TRANSACTIONS,
   CAN_VIEW_PENDING_PLAYERS,
+  CAN_MANAGE_PLAYER_INDEX_IDS,
 } from 'lib/constants';
 import { userGroups } from 'lib/userGroups';
 import { useMemo } from 'react';
@@ -27,6 +28,7 @@ export type Permissions = {
   canAssignPlayerIIHFNation: boolean;
   canProcessBankTransactions: boolean;
   canViewPendingPlayers: boolean;
+  canManagePlayerIndexIds: boolean;
 };
 
 const UNAUTHENTICATED_PERMISSIONS = {
@@ -40,6 +42,7 @@ const UNAUTHENTICATED_PERMISSIONS = {
   canAssignPlayerIIHFNation: false,
   canProcessBankTransactions: false,
   canViewPendingPlayers: false,
+  canManagePlayerIndexIds: false,
 };
 
 export const usePermissions = (): {
@@ -104,6 +107,11 @@ export const usePermissions = (): {
       ),
       canViewPendingPlayers: data?.groups.some((group) =>
         CAN_VIEW_PENDING_PLAYERS.map((role) => userGroups[role]).includes(
+          group,
+        ),
+      ),
+      canManagePlayerIndexIds: data?.groups.some((group) =>
+        CAN_MANAGE_PLAYER_INDEX_IDS.map((role) => userGroups[role]).includes(
           group,
         ),
       ),

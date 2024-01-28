@@ -1,5 +1,6 @@
 import { FilterFn } from '@tanstack/react-table';
 import fuzzysort from 'fuzzysort';
+import { deburr } from 'lodash';
 
 type FilterPart = {
   type: 'text';
@@ -56,10 +57,21 @@ export const simpleGlobalFilterFn: FilterFn<any> = (
   columnId,
   filterValue,
 ) => {
-  const safeValue = (() => {
-    const value = row.getValue(columnId);
-    return typeof value === 'number' ? String(value) : value;
-  })();
+  const safeValue = String(
+    (() => {
+      const value = row.getValue(columnId);
+      return typeof value === 'number' ? String(value) : value;
+    })(),
+  );
 
-  return String(safeValue).toLowerCase().includes(filterValue.toLowerCase());
+  const columnsToDeburr = ['name'];
+
+  const deburredValue = columnsToDeburr.includes(columnId)
+    ? deburr(safeValue)
+    : safeValue;
+
+  return (
+    safeValue.toLowerCase().includes(filterValue.toLowerCase()) ||
+    deburredValue.toLowerCase().includes(filterValue.toLowerCase())
+  );
 };

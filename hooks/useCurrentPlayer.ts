@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSession } from 'contexts/AuthContext';
 import config from 'lib/config';
+import { isNull } from 'lodash';
 import { useMemo } from 'react';
 import { Player } from 'typings';
 import { query } from 'utils/query';
@@ -16,6 +17,11 @@ export const useCurrentPlayer = (): {
   const { session, loggedIn } = useSession();
   const [userid] = useCookie(config.userIDCookieName);
 
+  const isEnabled = useMemo(
+    () => loggedIn && !isNull(userid),
+    [loggedIn, userid],
+  );
+
   const { data: playerData, isLoading: isLoadingPlayer } = useQuery<Player[]>({
     queryKey: ['myPlayerInfo', session?.token, userid],
     queryFn: () =>
@@ -24,7 +30,7 @@ export const useCurrentPlayer = (): {
           Authorization: `Bearer ${session?.token}`,
         },
       }),
-    enabled: loggedIn && !!userid,
+    enabled: isEnabled,
   });
 
   const canUnretire = useMemo(() => {

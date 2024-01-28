@@ -1,5 +1,5 @@
-import { ExternalLinkIcon } from '@chakra-ui/icons';
-import { Button, Progress } from '@chakra-ui/react';
+import { CloseIcon, ExternalLinkIcon } from '@chakra-ui/icons';
+import { Button, IconButton, Progress } from '@chakra-ui/react';
 import {
   createColumnHelper,
   getCoreRowModel,
@@ -26,7 +26,7 @@ export const IIHFPlayerTable = ({
   isLoading,
 }: {
   data: Array<Player>;
-  callback: (player: Player) => void;
+  callback: (player: Player, action: 'DELETE' | 'CHANGE') => void;
   isLoading?: boolean;
 }) => {
   const columns = useMemo(() => {
@@ -74,13 +74,23 @@ export const IIHFPlayerTable = ({
       columnHelper.display({
         id: 'actions',
         cell: (props) => (
-          <Button
-            variant="outline"
-            colorScheme="blue"
-            onClick={() => callback(props.row.original)}
-          >
-            Change Federation
-          </Button>
+          <div className="space-x-2">
+            <Button
+              variant="outline"
+              colorScheme="blue"
+              onClick={() => callback(props.row.original, 'CHANGE')}
+            >
+              Change
+            </Button>
+            <IconButton
+              aria-label="Remove IIHF Federation"
+              icon={<CloseIcon />}
+              colorScheme="red"
+              variant="outline"
+              onClick={() => callback(props.row.original, 'DELETE')}
+              isDisabled={!props.row.original.iihfNation}
+            />
+          </div>
         ),
       }),
     ];

@@ -153,7 +153,9 @@ export const UpdateEventsManagementTable = ({
                 denials: prev.denials.filter((denial) => denial !== eventID),
               }));
             }
-            queryClient.invalidateQueries({ queryKey: ['approvals'] });
+            queryClient.invalidateQueries({
+              queryKey: ['approvals'],
+            });
           },
         },
       );

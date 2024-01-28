@@ -228,10 +228,17 @@ export const PlayerAttributeInput = memo(
           <ReactiveNumberInput
             label={readableAttribute}
             shouldHighlight={shouldHighlightForRole}
-            onBlur={handleBlur}
+            onBlur={(e) => {
+              handleBlur && handleBlur(e);
+              setFieldValue &&
+                setFieldValue(
+                  formValueName,
+                  isNaN(value) ? minimumValue : value,
+                );
+            }}
             onChange={(_, value) =>
               setFieldValue &&
-              setFieldValue(formValueName, isNaN(value) ? 0 : value)
+              setFieldValue(formValueName, isNaN(value) ? undefined : value)
             }
             value={value}
             name={formValueName}
@@ -245,9 +252,12 @@ export const PlayerAttributeInput = memo(
         <FormHelperText className="flex flex-col font-mont">
           {!isReadOnly && (
             <div className="mb-2 flex items-center justify-between text-grey900">
-              <div>Total Cost: {totalCost}</div>
+              <div>Total Cost: {isNaN(totalCost) ? 'N/A' : totalCost}</div>
               <div>
-                <div>Next Point: {nextIncrementCost}</div>
+                <div>
+                  Next Point:{' '}
+                  {isNaN(nextIncrementCost) ? 'N/A' : nextIncrementCost}
+                </div>
               </div>
             </div>
           )}

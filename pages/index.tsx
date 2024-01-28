@@ -1,11 +1,12 @@
+import { PageWrapper } from 'components/common/PageWrapper';
+import { useSession } from 'contexts/AuthContext';
+import { useCurrentPlayer } from 'hooks/useCurrentPlayer';
 import { useRouter } from 'next/router';
 import { useEffect } from 'react';
 
-import { useSession } from '../contexts/AuthContext';
-
 export default () => {
   const { loggedIn } = useSession();
-  // const { player, loading } = useCurrentPlayer();
+  const { player, loading } = useCurrentPlayer();
 
   const router = useRouter();
 
@@ -14,18 +15,18 @@ export default () => {
       router.replace('/login');
     }
 
-    if (loggedIn) {
-      // if (player.status === 'retired' || player.status === 'denied') {
-      //   router.replace('/create');
-      // } else {
-      //   router.replace('/player');
-      // }
-      router.replace('/player')
+    if (loggedIn && player && !loading) {
+      if (player.status === 'retired' || player.status === 'denied') {
+        router.replace('/create');
+      } else {
+        router.replace('/player');
+      }
     }
-  }, [loggedIn, router]);
+  }, [loading, loggedIn, player, router]);
 
   return (
-    <div />
+    <PageWrapper title="Home" loading={loggedIn ? loading : false}>
+      <div />
+    </PageWrapper>
   );
-}
-
+};

@@ -17,75 +17,18 @@ import {
   AttributeChange,
   EditAttributesForm,
 } from 'components/playerForms/editAttributes/EditAttributesForm';
+import {
+  defaultBuildPlayer,
+  flattenPlayer,
+  rebuildPlayer,
+} from 'components/playerForms/shared';
 import { ToastContext } from 'contexts/ToastContext';
 import { Base64 } from 'js-base64';
 import { useRouter } from 'next/router';
-import { memo, useCallback, useContext, useEffect, useState } from 'react';
+import { useCallback, useContext, useEffect, useState } from 'react';
 import { GoalieAttributes, Player, SkaterAttributes } from 'typings';
 
-const defaultPlayer: Player = {
-  recruiter: '',
-  render: '',
-  iihfNation: '',
-  position: 'Center',
-  uid: 0,
-  username: '',
-  pid: 0,
-  creationDate: '',
-  retirementDate: null,
-  status: 'active',
-  birthplace: null,
-  totalTPE: 155,
-  currentLeague: 'SHL',
-  currentTeamID: null,
-  shlRightsTeamID: null,
-  draftSeason: 1,
-  bankedTPE: 155,
-  appliedTPE: 0,
-  positionChanged: false,
-  usedRedistribution: 0,
-  coachingPurchased: 0,
-  trainingPurchased: false,
-  activityCheckComplete: false,
-  trainingCampComplete: false,
-  taskStatus: 'Draftee Free Agent',
-  bankBalance: 0,
-  attributes: {
-    screening: 5,
-    gettingOpen: 5,
-    passing: 5,
-    puckhandling: 5,
-    shootingAccuracy: 5,
-    shootingRange: 5,
-    offensiveRead: 5,
-    checking: 5,
-    hitting: 5,
-    positioning: 5,
-    stickchecking: 5,
-    shotBlocking: 5,
-    faceoffs: 5,
-    defensiveRead: 5,
-    acceleration: 5,
-    agility: 5,
-    balance: 5,
-    speed: 5,
-    strength: 5,
-    stamina: 14,
-    fighting: 5,
-    aggression: 5,
-    bravery: 5,
-    determination: 15,
-    teamPlayer: 15,
-    leadership: 15,
-    temperament: 15,
-    professionalism: 15,
-  },
-  name: '',
-  handedness: 'Right',
-  jerseyNumber: null,
-  height: null,
-  weight: null,
-} as const;
+const LOCAL_STORAGE_KEY = 'builds';
 
 export default () => {
   const [storedBuilds, setStoredBuilds] = useState<Player[] | undefined>(
@@ -96,7 +39,7 @@ export default () => {
 
   const { addToast } = useContext(ToastContext);
 
-  const [player, setPlayer] = useState(defaultPlayer);
+  const [player, setPlayer] = useState(defaultBuildPlayer);
 
   const onCancel = useCallback(() => {
     if (typeof window !== 'undefined') {
@@ -106,7 +49,7 @@ export default () => {
   }, []);
 
   const fetchStoredBuilds = useCallback(() => {
-    const saved = localStorage.getItem('builds');
+    const saved = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (saved) {
       const initial = JSON.parse(saved);
       setStoredBuilds(initial);
@@ -115,12 +58,24 @@ export default () => {
 
   useEffect(() => {
     if (router.query?.token) {
-      const decodedPlayer = JSON.parse(
-        Base64.decode(String(router.query.token)),
-      );
-      setTokenizedPlayer(String(router.query.token));
-      setPlayer(decodedPlayer);
+      try {
+        const decodedPlayer = rebuildPlayer(
+          JSON.parse(Base64.decode(String(router.query.token))),
+        );
+
+        setTokenizedPlayer(String(router.query.token));
+        setPlayer(decodedPlayer);
+      } catch {
+        setTokenizedPlayer(undefined);
+        setPlayer(defaultBuildPlayer);
+        addToast({
+          title: 'Failed to load build',
+          description: ' Please validate your URL and try again.',
+          status: 'error',
+        });
+      }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router.query.token]);
 
   const [tokenizedPlayer, setTokenizedPlayer] = useState<string | undefined>(
@@ -128,7 +83,8 @@ export default () => {
   );
 
   const tokenizePlayer = useCallback((player: any) => {
-    if (player !== undefined) return Base64.encode(JSON.stringify(player));
+    if (player !== undefined)
+      return Base64.encode(JSON.stringify(flattenPlayer(player)));
   }, []);
 
   useEffect(() => {
@@ -162,10 +118,6 @@ export default () => {
 
   const [playerName, setPlayerName] = useState('');
 
-  useEffect(() => {
-    if (player.name) setPlayerName(player.name);
-  }, [player.name]);
-
   const onSubmitCallback = useCallback(
     async (
       _changes: AttributeChange[],
@@ -173,41 +125,20 @@ export default () => {
       goalie?: Partial<GoalieAttributes>,
       skater?: Partial<SkaterAttributes>,
     ) => {
-      if (info.position === 'Goalie') {
-        const newPlayer = {
-          ...info,
-          ...player,
-          name: playerName,
-          creationDate: new Date().toISOString(),
-          attributes: { ...goalie },
-        };
+      const newPlayer = {
+        ...info,
+        ...player,
+        name: playerName,
+        creationDate: new Date().toISOString(),
+        attributes: info.position === 'Goalie' ? { ...goalie } : { ...skater },
+      };
 
-        const builds = storedBuilds
-          ? [...storedBuilds, newPlayer]
-          : [newPlayer];
+      const builds = storedBuilds ? [...storedBuilds, newPlayer] : [newPlayer];
 
-        localStorage.setItem('builds', JSON.stringify(builds));
-        setTokenizedPlayer(tokenizePlayer(newPlayer));
-        fetchStoredBuilds();
-        setPlayer(newPlayer as Player);
-      } else {
-        const newPlayer = {
-          ...info,
-          ...player,
-          name: playerName,
-          creationDate: new Date().toISOString(),
-          attributes: { ...skater },
-        };
-
-        const builds = storedBuilds
-          ? [...storedBuilds, newPlayer]
-          : [newPlayer];
-
-        localStorage.setItem('builds', JSON.stringify(builds));
-        setTokenizedPlayer(tokenizePlayer(newPlayer));
-        fetchStoredBuilds();
-        setPlayer(newPlayer as Player);
-      }
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(builds));
+      setTokenizedPlayer(tokenizePlayer(newPlayer));
+      fetchStoredBuilds();
+      setPlayer(newPlayer as Player);
 
       addToast({
         title: `Saved`,
@@ -254,27 +185,17 @@ export default () => {
         const filteredBuilds = storedBuilds.filter(
           (build) => build.creationDate !== creationDate,
         );
-        localStorage.setItem('builds', JSON.stringify(filteredBuilds));
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(filteredBuilds));
         setStoredBuilds(filteredBuilds);
       } else {
-        localStorage.removeItem('builds');
+        localStorage.removeItem(LOCAL_STORAGE_KEY);
         setStoredBuilds(undefined);
       }
       setTokenizedPlayer(undefined);
-      setActivePlayer(defaultPlayer, true);
+      setActivePlayer(defaultBuildPlayer, true);
     },
     [setActivePlayer, storedBuilds],
   );
-
-  const MemoizedEditAttributesForm = memo(() => (
-    <EditAttributesForm
-      player={player}
-      attributeFormType="Create"
-      season={Infinity}
-      onSubmitCallback={onSubmitCallback}
-      onCancel={onCancel}
-    />
-  ));
 
   return (
     <PageWrapper title="Player Build Tool" className="flex w-full flex-col">
@@ -344,6 +265,7 @@ export default () => {
             variant="outline"
             colorScheme="red"
             onClick={() => clearSavedPlayer(player.creationDate)}
+            disabled={!player.creationDate}
             className="w-1/2"
           >
             Clear Saved Build
@@ -364,7 +286,14 @@ export default () => {
           </Button>
         </div>
       )}
-      <MemoizedEditAttributesForm />
+      <EditAttributesForm
+        player={player}
+        attributeFormType="Create"
+        season={Infinity}
+        onSubmitCallback={onSubmitCallback}
+        isSubmitting={false}
+        onCancel={onCancel}
+      />
     </PageWrapper>
   );
 };

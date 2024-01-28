@@ -82,6 +82,15 @@ export default async function handler(
       res.status(400).json({ invalidTaskStatus });
       return;
     }
+  } else {
+    if (
+      !(await checkUserAuthorization(req, {
+        validRoles: ['SHL_HO', 'SHL_COMMISSIONER', 'SMJHL_INTERN'],
+      }))
+    ) {
+      res.status(401).end(`Not authorized`);
+      return;
+    }
   }
 
   let taskGroupID: number | undefined = undefined;

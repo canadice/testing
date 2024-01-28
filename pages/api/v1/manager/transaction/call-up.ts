@@ -55,7 +55,7 @@ export default async function handler(
     !manager.length ||
     !player.length ||
     !season.length ||
-    player[0].currentLeague !== 'SMJHL' ||
+    player[0].currentLeague === 'SHL' ||
     player[0].season === null ||
     player[0].shlRightsTeamID !== manager[0].teamID
   ) {

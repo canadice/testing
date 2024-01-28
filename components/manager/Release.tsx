@@ -34,7 +34,7 @@ export const Release = ({
   const { data: prospectData } = useQuery<Player[]>({
     queryKey: ['playerProspectReleases', teamID, league],
     queryFn: () =>
-      query(`api/v1/player?teamRightsID=${teamID}&leagueID=1`, undefined),
+      query(`api/v1/player?teamRightsID=${teamID}&notLeagueID=0`, undefined),
     enabled: league === 0,
   });
 
